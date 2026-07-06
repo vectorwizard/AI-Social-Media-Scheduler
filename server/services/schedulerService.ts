@@ -69,6 +69,6 @@ export const initScheduler = () => {
         } catch (error) {
             console.error("Error in scheduler:",error);
         }
-        console.log("Scheduler service initialized.");
     })
+    console.log("Scheduler service initialized.");
 }
