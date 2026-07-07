@@ -10,33 +10,33 @@ import { Post } from "../models/Post.js";
 const pollLeonardoJob = async (generationId: string, apiKey: string): Promise<string> => {
     const maxRetries = 20;
     const delay = 5000;
-
     for (let i = 0; i < maxRetries; i++) {
+        let generation;
         try {
             const response = await axios.get(`https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`, {
-                headers: {
-                    accept: "application/json",
-                    authorization: `Bearer ${apiKey}`,
-                }
-            })
-
-            const generation = response.data.generations_by_pk;
-            if (generation.status === "COMPLETE") {
-                if (generation.generated_images && generation.generated_images.length > 0) {
-                    return generation.generated_images[0].url
-                }
-                throw new Error("Generation complete but no images found.")
-            }
-            if(generation.status === "FAILED"){
-                throw new Error("Leonardo.ai generation failed.")
-            }
-        } catch (err:any) {
+                headers: { accept: "application/json", authorization: `Bearer ${apiKey}` }
+            });
+            generation = response.data.generations_by_pk;
+        } catch (err: any) {
             console.error("Polling error:", err?.response?.data || err.message);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
         }
-        await new Promise((resolve)=> setTimeout(resolve,delay));
+
+        if (generation.status === "COMPLETE") {
+            if (generation.generated_images?.length > 0) {
+                return generation.generated_images[0].url;
+            }
+            throw new Error("Generation complete but no images found.");
+        }
+        if (generation.status === "FAILED") {
+            throw new Error("Leonardo.ai generation failed.");
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    throw new Error("Leonardo.ai generation timeout.")
-}
+    throw new Error("Leonardo.ai generation timeout.");
+};
 
 //Generate post
 //POST /api/posts/generate
@@ -106,12 +106,12 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
                     const tempUrl = await pollLeonardoJob(generationId, leonardoKey)
 
                     //Upload to Cloudinary for persistence
-                    const uploadResult = await cloudinary.uploader.upload(tempUrl,{
+                    const uploadResult = await cloudinary.uploader.upload(tempUrl, {
                         folder: "ai-generations",
                     });
                     mediaUrl = uploadResult.secure_url;
                 }
-            } catch (err:any) {
+            } catch (err: any) {
                 console.error("Image generation failed:", err);
             }
         }
@@ -122,13 +122,13 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
             prompt,
             content,
             mediaUrl,
-            mediaType: mediaUrl? "image" : undefined,
+            mediaType: mediaUrl ? "image" : undefined,
             tone
         })
 
         res.json(generation)
     } catch (error: any) {
-        res.status(500).json({message: error?.message || "Server error"});
+        res.status(500).json({ message: error?.message || "Server error" });
     }
 }
 
@@ -136,10 +136,10 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
 //GET /api/posts/generations
 export const getGenerations = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const generations = await Generation.find({user: req.user._id}).sort({createdAt: -1})
+        const generations = await Generation.find({ user: req.user._id }).sort({ createdAt: -1 })
         res.json(generations)
     } catch (error: any) {
-        res.status(500).json({message: error?.message || "Server error"});
+        res.status(500).json({ message: error?.message || "Server error" });
     }
 }
 
@@ -147,10 +147,10 @@ export const getGenerations = async (req: AuthRequest, res: Response): Promise<v
 //GET /api/posts
 export const getPosts = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const posts = await Post.find({user: req.user._id})
+        const posts = await Post.find({ user: req.user._id })
         res.json(posts)
     } catch (error: any) {
-        res.status(500).json({message: error?.message || "Server error"});
+        res.status(500).json({ message: error?.message || "Server error" });
     }
 }
 
@@ -158,11 +158,11 @@ export const getPosts = async (req: AuthRequest, res: Response): Promise<void> =
 //POST /api/posts
 export const schedulePosts = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const {content, platforms, scheduledFor, status} = req.body;
-        
+        const { content, platforms, scheduledFor, status } = req.body;
+
         //Parse platforms if it comes as a stringified array from formData
         let parsedPlatforms = platforms;
-        if(typeof(platforms)==="string"){
+        if (typeof (platforms) === "string") {
             try {
                 parsedPlatforms = JSON.parse(platforms);
             } catch (error) {
@@ -172,10 +172,10 @@ export const schedulePosts = async (req: AuthRequest, res: Response): Promise<vo
         let mediaUrl: string | undefined = req.body.mediaUrl;
         let mediaType: "image" | "video" | undefined = req.body.mediaType;
 
-        if(req.file){
-            const result = await new Promise<any>((resolve,reject)=>{
-                const stream = cloudinary.uploader.upload_stream({resource_type:"auto", folder:"social-scheduler"}, (error,result)=>{
-                    if(error) reject(error);
+        if (req.file) {
+            const result = await new Promise<any>((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream({ resource_type: "auto", folder: "social-scheduler" }, (error, result) => {
+                    if (error) reject(error);
                     else resolve(result)
                 });
                 stream.end(req.file!.buffer);
@@ -196,6 +196,6 @@ export const schedulePosts = async (req: AuthRequest, res: Response): Promise<vo
         res.status(201).json(post)
 
     } catch (error: any) {
-        res.status(500).json({message: error?.message || "Server error"});
+        res.status(500).json({ message: error?.message || "Server error" });
     }
 }
