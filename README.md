@@ -105,20 +105,6 @@ VITE_API_URL=http://localhost:5000
 npm run dev
 ```
 
----
-
-## 🌐 Deployment Notes
-
-- **Frontend (Vercel):** requires a `vercel.json` with SPA rewrites so client-side routes (e.g. `/dashboard`) don't 404 on refresh:
-  ```json
-  {
-    "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-  }
-  ```
-- **Backend (Render):** whitelist Render's outbound IPs (or allow `0.0.0.0/0` for dev) in MongoDB Atlas network access, since Render's IPs are dynamic.
-- **Zernio free tier:** the first 2 connected social accounts are free per API key/workspace — this limit is shared across *all* users of the app, not per individual user.
-
----
 
 ## 📄 License
 
