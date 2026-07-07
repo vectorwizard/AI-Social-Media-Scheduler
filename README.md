@@ -223,17 +223,6 @@ VITE_API_URL=http://localhost:5000
 npm run dev
 ```
 
----
-
-## 🗺️ Roadmap
-
-- [ ] Analytics on published post performance
-- [ ] Support for more platforms (TikTok, YouTube, Threads)
-- [ ] Team / multi-user workspace support
-- [ ] Bulk scheduling via CSV upload
-- [ ] Post-performance-based AI tone suggestions
-
----
 
 ## 🙏 Acknowledgments
 
