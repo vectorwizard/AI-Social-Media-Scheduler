@@ -1,4 +1,4 @@
-# 🚀 AI Social Scheduler
+# 🚀 AI Social Media Scheduler
 
 Manage and automate your social media presence — connect accounts, schedule posts across platforms, and let AI write and design your content for you.
 
